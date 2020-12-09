@@ -1,21 +1,38 @@
 import pickle
-from typing import List
+from typing import List, Dict
 from os import path
+from math import log
 
 
-def generate_dictionary(processed_dataset: List[List[str]]):
-    if not path.exists("embed_indexes.pickle"):
-        print("generating pickle")
-        embed_dict = {}
-        counter = 0
+def generate_idf_dictionary(processed_dataset: List[List[str]]):
+    if not path.exists("IDF.pickle"):
+        print("generating IDF pickle")
 
-        for sample in processed_dataset:
-            for word in sample:
-                if word not in embed_dict:
-                    embed_dict[word] = counter
-                    counter += 1
+        train_set_length = len(processed_dataset)
+        counts_dict = compute_word_frequency_dict(processed_dataset)
+        print(len(counts_dict))
+        idf_dict = {}
 
-        with open('embed_indexes.pickle', 'wb') as handle:
-            pickle.dump(embed_dict, handle)
+        for word in counts_dict:
+            idf_dict[word] = log(train_set_length / counts_dict[word], 2)
+
+        with open('IDF.pickle', 'wb') as handle:
+            pickle.dump(idf_dict, handle)
+
     else:
-        print("embedding_indexes.pickle already exists, skipping generation")
+        print("IDF.pickle already exists, skipping generation")
+
+
+def compute_word_frequency_dict(processed_dataset: List[List[str]]):
+    counts_dict = {}
+    for sample in processed_dataset:
+        word_accumulator = set()
+        for word in sample:
+            if word not in counts_dict and word not in word_accumulator:
+                counts_dict[word] = 1
+                word_accumulator.add(word)
+            if word in counts_dict and word not in word_accumulator:
+                counts_dict[word] += 1
+                word_accumulator.add(word)
+
+    return counts_dict
