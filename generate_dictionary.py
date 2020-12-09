@@ -4,7 +4,16 @@ from os import path
 from math import log
 
 
-def generate_idf_dictionary(processed_dataset: List[List[str]]):
+def generate_idf_dictionary(processed_dataset: List[List[str]]) -> Dict[str, float]:
+    """
+    Generates a dictionary that maps each word to its IDF score
+
+    :param processed_dataset:
+        A list of preprocessed tweets that is going to be used for training the
+        language model
+    :return:
+        A dictionary mapping of words to IDF scores
+    """
     if not path.exists("IDF.pickle"):
         print("generating IDF pickle")
 
@@ -27,7 +36,17 @@ def generate_idf_dictionary(processed_dataset: List[List[str]]):
         return idf_dict
 
 
-def compute_word_frequency_dict(processed_dataset: List[List[str]]):
+def compute_word_frequency_dict(processed_dataset: List[List[str]]) -> Dict[str, int]:
+    """
+    This function computes a dictionary which stores the mapping of each word
+    in the dataset to its frequency
+
+    :param processed_dataset:
+        A list of preprocessed tweets that is going to be used for training the
+        language model
+    :return:
+        A dictionary mapping of words to frequency
+    """
     counts_dict = {}
     for sample in processed_dataset:
         word_accumulator = set()
