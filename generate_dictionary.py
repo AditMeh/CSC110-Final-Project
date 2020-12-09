@@ -10,17 +10,21 @@ def generate_idf_dictionary(processed_dataset: List[List[str]]):
 
         train_set_length = len(processed_dataset)
         counts_dict = compute_word_frequency_dict(processed_dataset)
-        print(len(counts_dict))
         idf_dict = {}
 
         for word in counts_dict:
-            idf_dict[word] = log(train_set_length / counts_dict[word], 2)
+            idf_dict[word] = 1 + log(train_set_length / counts_dict[word], 2)
 
         with open('IDF.pickle', 'wb') as handle:
             pickle.dump(idf_dict, handle)
 
+        return idf_dict
     else:
         print("IDF.pickle already exists, skipping generation")
+
+        with open('IDF.pickle', 'rb') as handle:
+            idf_dict = pickle.load(handle)
+        return idf_dict
 
 
 def compute_word_frequency_dict(processed_dataset: List[List[str]]):
