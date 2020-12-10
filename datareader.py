@@ -4,20 +4,23 @@ from nltk.corpus import stopwords
 from string import punctuation
 from typing import List, Tuple
 from os import path
+import os
+
+NLTK_FILEPATH = os.path.join(os.path.dirname(os.getcwd()), "nltk_data/")
 
 
 class DataLoader:
     def __init__(self, filepath: str) -> None:
         self.FILEPATH = filepath
 
-        if not path.exists("nltk_data"):
+        if not path.exists(NLTK_FILEPATH):
             print("Downloading corpus")
-            nltk.data.path.append('nltk_data/')
-            nltk.download('stopwords', download_dir="nltk_data/")
-            nltk.download('punkt', download_dir="nltk_data/")
+            nltk.data.path.append(NLTK_FILEPATH)
+            nltk.download('stopwords', download_dir=NLTK_FILEPATH)
+            nltk.download(NLTK_FILEPATH, download_dir=NLTK_FILEPATH)
         else:
             print("Corpus already exists")
-            nltk.data.path.append('nltk_data/')
+            nltk.data.path.append(NLTK_FILEPATH)
 
         self.stop_words = set(stopwords.words('english'))
 
@@ -235,5 +238,3 @@ class DataLoader:
         """
 
         return [string for string in tweet if string != ""]
-
-

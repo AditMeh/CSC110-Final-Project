@@ -91,6 +91,8 @@ class VectorGraph:
                 word_count_mapping[word] = 1
             else:
                 word_count_mapping[word] += 1
+
+        #print("ma" in word_count_mapping)
         tf_idf = [(word_count_mapping[word] / length) * self.idf_dict[word]
                   for word in sentence]
         return tf_idf
