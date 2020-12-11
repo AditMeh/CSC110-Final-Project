@@ -1,5 +1,5 @@
 import pickle
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from os import path
 from math import log
 
@@ -59,3 +59,18 @@ def compute_word_frequency_dict(processed_dataset: List[List[str]]) -> Dict[str,
                 word_accumulator.add(word)
 
     return counts_dict
+
+
+def compute_class_word_frequency_dicts(processed_dataset: List[List[str]], labels: List[int]) \
+        -> Dict[int, Dict[str, int]]:
+
+    class_counts_dict = {-1: {}, 0: {}, 1: {}, 2: {}}
+
+    for i in range(len(processed_dataset)):
+        for word in processed_dataset[i]:
+            if word not in class_counts_dict[labels[i]]:
+                class_counts_dict[labels[i]][word] = 1
+            elif word in class_counts_dict[labels[i]]:
+                class_counts_dict[labels[i]][word] += 1
+
+    return class_counts_dict

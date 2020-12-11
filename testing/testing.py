@@ -23,4 +23,3 @@ def test_filter_tweet() -> None:
     tweet = "RT: @jeff Check out this cool link! https://google.com #awesome"
     loader = DataLoader("twitter_sentiment_data.csv")
     assert loader._filter_tweet(tweet) == ["check", "this", "cool", "link", "#awesome"]
-

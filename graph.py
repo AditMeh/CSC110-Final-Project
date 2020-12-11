@@ -12,8 +12,9 @@ class Node:
 class VectorGraph:
 
     def __init__(self, train_x: List[List[str]], train_y: List[int], idf_dict: Dict[str, float]) -> None:
+        print("Creating graph")
         self._graph = []
-        self.idf_dict = idf_dict
+        self._idf_dict = idf_dict
         assert len(train_x) == len(train_y)
 
         for i in range(len(train_x)):
@@ -92,8 +93,7 @@ class VectorGraph:
             else:
                 word_count_mapping[word] += 1
 
-        #print("ma" in word_count_mapping)
-        tf_idf = [(word_count_mapping[word] / length) * self.idf_dict[word]
+        tf_idf = [(word_count_mapping[word] / length) * self._idf_dict[word]
                   for word in sentence]
         return tf_idf
 

@@ -11,7 +11,7 @@ NLTK_FILEPATH = os.path.join(os.path.dirname(os.getcwd()), "nltk_data/")
 
 class DataLoader:
     def __init__(self, filepath: str) -> None:
-        self.FILEPATH = filepath
+        self._FILEPATH = filepath
 
         if not path.exists(NLTK_FILEPATH):
             print("Downloading corpus")
@@ -22,7 +22,8 @@ class DataLoader:
             print("Corpus already exists")
             nltk.data.path.append(NLTK_FILEPATH)
 
-        self.stop_words = set(stopwords.words('english'))
+        self._stop_words = set(stopwords.words('english'))
+        self._stop_words.add("rt")
 
     def prepare_data(self) -> Tuple[List[List[str]], List[int]]:
         """
@@ -34,7 +35,7 @@ class DataLoader:
             train_y: A list of labels, where the ith label corresponds to the ith
             element of train_x
         """
-        df = pd.read_csv(self.FILEPATH)
+        df = pd.read_csv(self._FILEPATH)
         labels = df.iloc[:, 0]
         tweets = df.iloc[:, 1]
 
@@ -74,6 +75,7 @@ class DataLoader:
         tweet = self._filter_stopwords(tweet)
         tweet = self._remove_numbers(tweet)
         tweet = self._remove_empty_strings(tweet)
+        tweet = self._remove_ampersands(tweet)
         return tweet
 
     def _tokenize_tweet(self, tweet: str) -> List[str]:
@@ -159,10 +161,7 @@ class DataLoader:
         >>> loader._filter_nonascii(tweet)
         ["my", "well"]
         """
-        for element in tweet:
-            if not self._is_ascii(element):
-                tweet.remove(element)
-        return tweet
+        return [word for word in tweet if self._is_ascii(word)]
 
     def _filter_stopwords(self, tweet: List[str]) -> List[str]:
         """
@@ -180,12 +179,7 @@ class DataLoader:
         >>> self._filter_stopwords(tweet)
         ["name", "synonym", "king"]
         """
-        self.stop_words.add("rt")
-
-        for element in tweet:
-            if element in self.stop_words:
-                tweet.remove(element)
-        return tweet
+        return [word for word in tweet if word not in self._stop_words]
 
     def _is_ascii(self, word: str) -> bool:
         """
@@ -238,3 +232,6 @@ class DataLoader:
         """
 
         return [string for string in tweet if string != ""]
+
+    def _remove_ampersands(self, tweet:str) -> List[str]:
+        return [word for word in tweet if word != "amp"]
