@@ -233,5 +233,13 @@ class DataLoader:
 
         return [string for string in tweet if string != ""]
 
-    def _remove_ampersands(self, tweet:str) -> List[str]:
+    def _remove_ampersands(self, tweet: str) -> List[str]:
+        """
+        The dataset writes ampersands as "amp", so this function filters these out
+
+        :param tweet:
+            A tweet represented by a list of strings
+        :return:
+            A list without any elements that are equal to "amp"
+        """
         return [word for word in tweet if word != "amp"]

@@ -1,24 +1,45 @@
 from generate_dictionary import compute_class_word_frequency_dicts
-from datareader import DataLoader
+from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 
 FILEPATH = "twitter_sentiment_data.csv"
-loader = DataLoader(FILEPATH)
-train_x, train_y = loader.prepare_data()
-freq_dict = compute_class_word_frequency_dicts(train_x, train_y)
-
-thing = sorted(freq_dict[-1].items(), key=lambda x: x[1])
-
-thing_1 = [thing[-i][1] for i in range(1, 20)]
-thing_2 = [thing[-i][0] for i in range(1, 20)]
 
 
-y_pos = np.arange(len(thing_1))
+def visualize_class_words(plot_class: int, samples: List[List[str]], labels: List[int]) -> None:
+    """
+    This function plots a histogram that shows the top 20 words most frequently seen words
+    from samples in the dataset of a certain class
 
-plt.bar(y_pos, thing_1, align='center', alpha=0.5)
-plt.xticks(y_pos, thing_2, fontsize = 5)
-plt.ylabel('Usage')
-plt.title('Programming language usage')
+    :param plot_class:
+        The class from which the most frequent words will be plotted
+    :param samples:
+        The dataset samples
+    :param labels:
+        The dataset labels
+    :return:
+        Nothing
+    """
 
-plt.show()
+    freq_dict = compute_class_word_frequency_dicts(samples, labels)
+
+    label_to_text = {
+        -1: "Most common words for climate change non-believers",
+        0: "Most common words for neutral tweets",
+        1: "Most common words for climate change supporters",
+        2: "Most common words for factual news about climate change"
+    }
+
+    sorted_dict_key_values = sorted(freq_dict[plot_class].items(), key=lambda x: x[1])
+
+    count_words = [sorted_dict_key_values[-i][1] for i in range(1, 20)]
+    words_sorted = [sorted_dict_key_values[-i][0] for i in range(1, 20)]
+
+    y_pos = np.arange(len(count_words))
+
+    plt.bar(y_pos, count_words, align='center', alpha=0.5)
+    plt.xticks(y_pos, words_sorted, fontsize=5)
+    plt.ylabel('Count')
+    plt.title(label_to_text[plot_class])
+
+    plt.show()

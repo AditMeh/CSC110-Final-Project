@@ -93,8 +93,13 @@ class VectorGraph:
             else:
                 word_count_mapping[word] += 1
 
-        tf_idf = [(word_count_mapping[word] / length) * self._idf_dict[word]
-                  for word in sentence]
+        tf_idf = []
+        for word in sentence:
+            if word in self._idf_dict:
+                tf_idf.append(word_count_mapping[word]/length * self._idf_dict[word])
+            else:
+                tf_idf.append(0)
+
         return tf_idf
 
     def _remove_missing_words(self, word_input: List[str], word_node: List[str],
