@@ -2,9 +2,9 @@
 Metrics module
 ===============================
 
-This module and its contained functions/classes are responsible for outputting data to be fit to a cosine
-similarity model and data used to test the model. It also is responsible for testing the fitted model on the
-test set.
+This module and its contained functions/classes are responsible for
+outputting data to be fit to a cosine similarity model and data used to test the model.
+It also is responsible for testing the fitted model on the test set.
 
 ===============================
 
@@ -17,8 +17,9 @@ from graph import VectorGraph
 
 
 def train_test_split(samples: List[List[str]], labels: List[int],
-                     percent_train: float, num_test: int) -> Tuple[
-    List[List[str]], List[int], List[List[str]], List[int]]:
+                     percent_train: float,
+                     num_test: int) -> Tuple[List[List[str]], List[int],
+                                             List[List[str]], List[int]]:
     """
     This function splits the data into training and testing sets
 
@@ -38,8 +39,9 @@ def train_test_split(samples: List[List[str]], labels: List[int],
         The number of samples that will be returned for testing purposes. This is capped at
         100 because it takes a long time for each prediction.
     :return:
-        A list of training samples and labels along with a list of testing samples and labels.
-        It is guaranteed that no two samples/label pairs in the testing and training sets are the same.
+        A list of training samples and labels along with a list of testing
+        samples and labels. It is guaranteed that no two samples/label pairs
+        in the testing and training sets are the same.
     """
 
     # Putting a limit on how large our parameter values can be
@@ -57,8 +59,9 @@ def train_test_split(samples: List[List[str]], labels: List[int],
     train_x = samples[0: dataset_train_length]
     train_y = labels[0: dataset_train_length]
 
-    # sampling num_tweet times from the set of the dataset that was not used for training. This gives us
-    # a list of indexes for samples that belong in the test set
+    # sampling num_tweet times from the set of the dataset that was not used
+    # for training. This gives us a list of indexes for samples that
+    # belong in the test set
     test_idx = random.sample(
         list(range(dataset_train_length, full_dataset_length)), num_test)
 
@@ -68,9 +71,10 @@ def train_test_split(samples: List[List[str]], labels: List[int],
     return train_x, train_y, test_x, test_y
 
 
-def compute_accuracy(test_x: List[List[str]], test_y: List[int], graph: VectorGraph) -> float:
+def compute_accuracy(test_x: List[List[str]], test_y: List[int], graph: VectorGraph) -> str:
     """
-    This function iterates through the testing set and computes the accuracy of the model
+    This function iterates through the testing set and computes and prints
+    the accuracy of the model at each iteration
 
     Preconditions:
         - all(all(word != "" for word in tweet) for tweet in test_x)
@@ -81,10 +85,11 @@ def compute_accuracy(test_x: List[List[str]], test_y: List[int], graph: VectorGr
     :param test_y:
         The testing set labels
     :param graph:
-        A graph object, this is the model that is trained on the training set that can output
-        predictions given a sentence
+        A graph object, this is the model that is trained on the training
+        set that can output predictions given a sentence
     :return:
-        The accuracy of the graph on the testing set.
+        A string stating the accuracy of the graph and details about the
+        testing set
     """
     num_correct = 0
     num_total = 0
@@ -103,4 +108,5 @@ def compute_accuracy(test_x: List[List[str]], test_y: List[int], graph: VectorGr
         print("closest sentence: " + str(words))
         print("Total accuracy = " + str(num_correct / num_total) + "\n")
 
-    return "Final accuracy on a random set of " + str(len(test_x)) + " samples: " + str(num_correct / num_total)
+    return "Final accuracy on a random set of " + str(len(test_x)) + " samples: " \
+           + str(num_correct / num_total)
