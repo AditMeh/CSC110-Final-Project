@@ -51,7 +51,6 @@ The function that can be changed here is the train_test_split function.
 
 
 def main():
-    """
     # VISUALIZATION
     loader = DataLoader(FILEPATH)
     samples, labels = loader.prepare_data()
@@ -61,10 +60,12 @@ def main():
     # TESTING THE MODEL
     loader = DataLoader(FILEPATH)
     samples, labels = loader.prepare_data()
-    train_x, train_y, test_x, test_y = train_test_split(samples, labels, 0.90, 50)
+    train_x, train_y, test_x, test_y = train_test_split(samples, labels, 0.90, 3)
     idf_dict = generate_idf_dictionary(train_x)
     graph = VectorGraph(train_x, train_y, idf_dict)
     print(compute_accuracy(test_x, test_y, graph))
+
+    """
 
 
 if __name__ == '__main__':
