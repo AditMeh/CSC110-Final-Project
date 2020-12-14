@@ -1,23 +1,68 @@
+"""
+Graph module
+===============================
+
+This module and its contained functions/classes are responsible for creating and fitting a cosine similarity
+model with TF-IDF scores. Additionally, the VectorGraph class in this model is responsible for using the fitted
+model to predict the sentiment of any given tweet in the right format.
+
+===============================
+
+This file is Copyright (c) 2020 Aditya Mehrotra.
+"""
+
 from dataclasses import dataclass
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 
 @dataclass
 class Node:
+    """
+    A custom data type that represents a node in our graph. Simplified, this data type
+    just represents a training set sample, by containing the tweet and its label. This is used
+    in the VectorGraph class to find the item with the closest cosine similarity to a query tweet.
+
+    Representation Invariants:
+        - all(word != "" for word in words)
+        - all(sentiment in {-1, 0, 1, 2} for sentiment in label)
+    """
     words: List[str]
     label: int
 
 
 class VectorGraph:
+    """A custom class that represents a graph, which holds a collection of nodes (defined above).
+    This class defines methods that allow the user to fit a model using a training set and generate the a
+    prediction for the sentiment of any given tweet."""
+
+    train_x: List[List[str]]
+    train_y: List[int]
+    idf_dict: Dict[str, float]
 
     def __init__(self, train_x: List[List[str]], train_y: List[int], idf_dict: Dict[str, float]) -> None:
+        """
+        This function creates a list of nodes (graph) using the training set. It does this by iterating through all
+        the samples in the training set and using the tweet + the label to create a node object, that it stores
+        in the list.
+
+        :param train_x:
+            The training set, this conists of many preprocessed tweets
+        :param train_y:
+            The training set labels, where the element at index i is the label for the element at index i
+            in train_x
+        :param idf_dict:
+            A dictionary which has the mapping of words to IDF scores
+        """
         print("Creating graph")
+
+        # This list contains all the nodes
         self._graph = []
         self._idf_dict = idf_dict
         assert len(train_x) == len(train_y)
 
         for i in range(len(train_x)):
+            # Create a Node for each training sample and append it to the graph list
             self._add_node(Node(train_x[i], train_y[i]))
 
     def _add_node(self, node: Node) -> None:
@@ -29,9 +74,10 @@ class VectorGraph:
         :return:
             Nothing
         """
+        # Add a node to the graph
         self._graph.append(node)
 
-    def compute_max_similar_node(self, input_text: List[str]) -> int:
+    def compute_max_similar_node(self, input_text: List[str]) -> Tuple[int, List[str]]:
         """
         Computes the node which is the most similar to the input_text and return
         the class of that node. Similarity is computed using cosine_similarity.
@@ -39,22 +85,33 @@ class VectorGraph:
         :param input_text: 
             A cleaned/preprocessed tweet represented by a list of words
         :return: 
-            The label of the node which is most similar to the input tweet
+            The label of the node which is most similar to the input tweet along with the tweet stored
+            in the node
         """
         max_similarity_score = -1
         max_sim_label = None
+        max_sim_node = None
+
+        # iterate through all the nodes in the graph
         for node in self._graph:
             node_tf_idf = self._compute_tf_idf(node.words)
+
+            # Compute the tf*idf scores for both the current node and the query, then typecast
+            # into numpy array
             node_idf_filtered = np.asarray(self._remove_missing_words(input_text, node.words, node_tf_idf))
             input_tf_idf = np.asarray(self._compute_tf_idf(input_text))
 
+            # Cosine similarity of the current node and query
             score = self._compute_cosine_similarity(input_tf_idf, node_idf_filtered)
 
+            # If the cosine similarity of a node is higher than the current maximum cosine similarity,
+            # update max_sim_label and max_sim_node to store the sentiment and tweet of that node
             if max_similarity_score < score:
                 max_sim_label = node.label
                 max_similarity_score = score
+                max_sim_node = node.words
 
-        return max_sim_label
+        return max_sim_label, max_sim_node
 
     def _compute_cosine_similarity(self, d1: np.ndarray, d2: np.ndarray) -> float:
         """
@@ -65,13 +122,15 @@ class VectorGraph:
         :param d2:
             A numpy array of shape (n,)
         :return:
-            returns the cosine similarity of the two vectors
+            Returns the cosine similarity of the two vectors
         """
         assert d1.shape == d2.shape
 
+        # To avoid dividing by zero. This edge case occurs when both vectors share no common elements
         if (np.linalg.norm(d1) * np.linalg.norm(d2)) == 0:
             return 0
 
+        # Computing cosine similarity between both vectors, refer to report for explicit forumla
         similarity = (np.dot(d1, d2)) / (np.linalg.norm(d1) * np.linalg.norm(d2))
         return similarity
 
@@ -85,6 +144,8 @@ class VectorGraph:
             A list of floats of length n, where each item is the tf*idf score of
             the words at the corresponding index in the initial sentence
         """
+
+        # mapping of words to counts
         word_count_mapping = {}
         length = len(sentence)
         for word in sentence:
@@ -93,10 +154,11 @@ class VectorGraph:
             else:
                 word_count_mapping[word] += 1
 
+        # Convert each word to a TF*IDF score and store it in a list
         tf_idf = []
         for word in sentence:
             if word in self._idf_dict:
-                tf_idf.append(word_count_mapping[word]/length * self._idf_dict[word])
+                tf_idf.append(word_count_mapping[word] / length * self._idf_dict[word])
             else:
                 tf_idf.append(0)
 
@@ -110,11 +172,11 @@ class VectorGraph:
             2. Iterates through the words in word_input and checks if
             the current word is also in the words of the node.
             3. In the case that the current word is in the words of the node,
-            Append the idf score to filtered_idf. If the current word is not
+            Append the TF*IDF score of current word to filtered_idf. If the current word is not
             in the words of the node, append 0 to filtered_idf
 
         For each word in word_input, the corresponding index at filtered_tf_idf
-        is the tf_idf score for that word from the words in words_node
+        is the TF*IDF score for that word from the words in words_node
 
         :param word_input:
             A list of words that represent the input tweet
@@ -132,8 +194,10 @@ class VectorGraph:
 
         for i in range(len(word_input)):
             if word_input[i] in word_node:
+                # Word in the query is in the words of the node
                 filtered_tf_idf.append(node_idf[word_node.index(word_input[i])])
             else:
+                # Case when the word in the query is not in the node
                 filtered_tf_idf.append(0)
 
         return filtered_tf_idf

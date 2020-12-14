@@ -1,3 +1,14 @@
+"""
+Dictionary generator module
+===============================
+
+This module is responsible for creating all the dictionaries that are used throughout this python application.
+
+===============================
+
+This file is Copyright (c) 2020 Aditya Mehrotra.
+"""
+
 import pickle
 from typing import List, Dict, Tuple
 from os import path
@@ -8,12 +19,17 @@ def generate_idf_dictionary(processed_dataset: List[List[str]]) -> Dict[str, flo
     """
     Generates a dictionary that maps each word to its IDF score
 
+    Preconditions:
+        - all(all(word != "" for word in tweet) for tweet in processed_dataset)
+
     :param processed_dataset:
         A list of preprocessed tweets that is going to be used for training the
         language model
     :return:
         A dictionary mapping of words to IDF scores
     """
+
+    # Using pre generated pickle dictionary to save computational power
     if not path.exists("IDF.pickle"):
         print("generating IDF pickle")
 
@@ -28,6 +44,8 @@ def generate_idf_dictionary(processed_dataset: List[List[str]]) -> Dict[str, flo
             pickle.dump(idf_dict, handle)
 
         return idf_dict
+
+    # Generating the dictionary and storing in a pickle if it doesn't exist
     else:
         print("IDF.pickle already exists, skipping generation")
 
@@ -38,22 +56,34 @@ def generate_idf_dictionary(processed_dataset: List[List[str]]) -> Dict[str, flo
 
 def compute_word_frequency_dict(processed_dataset: List[List[str]]) -> Dict[str, int]:
     """
-    This function computes a dictionary which stores the mapping of each word
-    in the dataset to its frequency
+    This function creates a dictionary which has the mapping of each word
+    in the dataset to how many sentences it appears in.
+
+    Preconditions:
+        - all(all(word != "" for word in tweet) for tweet in processed_dataset)
 
     :param processed_dataset:
         A list of preprocessed tweets that is going to be used for training the
         language model
     :return:
-        A dictionary mapping of words to frequency
+        A dictionary mapping of a word to how many sentences that word appears in
     """
+
+    # word accumulator
     counts_dict = {}
     for sample in processed_dataset:
+
+        # For every word in the sentence, keep track of which ones have already been visited
         word_accumulator = set()
         for word in sample:
+
+            # Check if a word has already been seen in the sentence elsewhere and if it does not
+            # exist in our count dict
             if word not in counts_dict and word not in word_accumulator:
                 counts_dict[word] = 1
                 word_accumulator.add(word)
+
+            # Check if a word has already been seen in the sentence elsewhere and if it exists in our count dict
             if word in counts_dict and word not in word_accumulator:
                 counts_dict[word] += 1
                 word_accumulator.add(word)
@@ -61,16 +91,38 @@ def compute_word_frequency_dict(processed_dataset: List[List[str]]) -> Dict[str,
     return counts_dict
 
 
-def compute_class_word_frequency_dicts(processed_dataset: List[List[str]], labels: List[int]) \
-        -> Dict[int, Dict[str, int]]:
+def compute_class_word_frequency_dicts(processed_dataset: List[List[str]], labels: List[int], chosen_label: int) \
+        -> Dict[str, int]:
+    """
+    This function creates a dictionary which maps each class label to another dictionary.
+    This dictionary contains the frequency of each word in the samples which correspond to the
+    class of the key.
 
-    class_counts_dict = {-1: {}, 0: {}, 1: {}, 2: {}}
+    Preconditions:
+        - all(all(word != "" for word in tweet) for tweet in processed_dataset)
+        - all(item in {-1, 0, 1, 2} for item in labels)
+
+    :param chosen_label:
+        The label that we want to compute the word frequency mapping of
+    :param labels:
+        The list of labels for each of the elements in the processed_dataset
+    :param processed_dataset:
+        A list of preprocessed sentences
+    :return:
+        A dictionary mapping of each class to a dictionary mapping words to frequency
+    """
+
+    # word counts accumulator
+    class_counts_dict = {}
 
     for i in range(len(processed_dataset)):
-        for word in processed_dataset[i]:
-            if word not in class_counts_dict[labels[i]]:
-                class_counts_dict[labels[i]][word] = 1
-            elif word in class_counts_dict[labels[i]]:
-                class_counts_dict[labels[i]][word] += 1
+
+        # check if the label of the sample corresponds to the class we want
+        if labels[i] == chosen_label:
+            for word in processed_dataset[i]:
+                if word not in class_counts_dict:
+                    class_counts_dict[word] = 1
+                elif word in class_counts_dict:
+                    class_counts_dict[word] += 1
 
     return class_counts_dict
